@@ -13,18 +13,26 @@ import BottomSheetUpdateTicketStatus from "../../../components/BottomSheetUpdate
 import CommentListItem from "../../../components/CommentListItem";
 import FileAttachmentListItem from "../../../components/FileAttachmentListItem";
 
+/**
+ * Renders ticket details, including comments and attachments
+ */
+
 const AdminTicketDetails: FC = () => {
     const {id} = useLocalSearchParams();
 
+    // State for storing the ticket details, comments, and attachments
     const [ticket, setTicket] = useState<Ticket | null>(null);
     const [comments, setComments] = useState<Comment[] | null>([]);
     const [attachments, setAttachments] = useState<FileAttachment[] | null>([]);
 
+    // Access the navigation object for navigation and setting options
     const navigation = useNavigation();
 
+    // Refs for the bottom sheets used to add comments and update the ticket status
     const bottomSheetRefAddComment = useRef<BottomSheet>(null);
     const bottomSheetRefUpdateStatus = useRef<BottomSheet>(null);
 
+    // Set the header options for the screen, including buttons for adding comments and updating the ticket status
     useLayoutEffect(() => {
         navigation.setOptions({
             headerRight: () => (
@@ -40,6 +48,7 @@ const AdminTicketDetails: FC = () => {
         });
     }, []);
 
+    // Fetch ticket details from database
     const fetchTicketDetails = async () => {
         const { data, error } = await supabase
             .from('tickets')
@@ -50,10 +59,12 @@ const AdminTicketDetails: FC = () => {
         setTicket(data)
     }
 
+    // Fetch ticket on component mount
     useEffect(() => {
         fetchTicketDetails();
     }, []);
 
+    // Fetch comments related to the ticket from database
     const fetchComments = async () => {
         if (!ticket?.id) return;
 
@@ -70,6 +81,7 @@ const AdminTicketDetails: FC = () => {
         }
     };
 
+    // Fetch attachments related to the ticket from database
     const fetchAttachments = async () => {
         if (!ticket?.id) return;
 
@@ -86,6 +98,7 @@ const AdminTicketDetails: FC = () => {
         }
     };
 
+    // Fetch comments and attachments whenever ticket details are updated
     useEffect(() => {
         Promise.all([fetchComments(), fetchAttachments()]);
     }, [ticket]);
@@ -116,7 +129,7 @@ const AdminTicketDetails: FC = () => {
                     </View>
 
                     {attachments?.map(attachment => (
-                        <FileAttachmentListItem file={attachment} />
+                        <FileAttachmentListItem key={attachment.id} file={attachment} />
                     ))}
 
                     <Text style={styles.subheaderText}>Ticket Description</Text>
@@ -124,12 +137,13 @@ const AdminTicketDetails: FC = () => {
 
                     <Text style={styles.subheaderText}>Correspondence</Text>
                     {comments?.map((comment) => (
-                        <CommentListItem comment={comment} />
+                        <CommentListItem key={comment.id} comment={comment} />
                     ))}
                 </ScrollView>
             </View>
 
-            <BottomSheetAddComment sheetRef={bottomSheetRefAddComment} ticketId={ticket?.id} onSuccess={val => setComments([val, ...[comments]])} />
+            {/* Bottom sheets for adding a comment and updating ticket status */}
+            <BottomSheetAddComment sheetRef={bottomSheetRefAddComment} ticketId={ticket?.id} onSuccess={(newComment) => setComments((currentComments) => [newComment, ...(currentComments ?? [])])} />
             <BottomSheetUpdateTicketStatus sheetRef={bottomSheetRefUpdateStatus} ticketId={ticket?.id} ticketStatus={ticket?.status} onSuccess={val => setTicket({...ticket!, status: val})} />
         </>
     );

@@ -5,7 +5,10 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import moment from "moment";
 import {convertStatusToDisplayString} from "../utils/helpers";
 
-const CustomerTicketListItem = ({ticket} : {ticket: Ticket}) => {
+/**
+ * Renders a single ticket list item for the customer panel
+ */
+const CustomerTicketListItem = ({ticket, commentCount}: {ticket: Ticket; commentCount: number}) => {
     return (
         <Pressable style={styles.container}>
             <View style={styles.row}>
@@ -30,7 +33,7 @@ const CustomerTicketListItem = ({ticket} : {ticket: Ticket}) => {
                 </View>
                 <View style={styles.row}>
                     <Ionicons name={'chatbubbles'} size={scale(20)} color={'#6cacf4'} />
-                    <Text style={styles.commentsContainer}>1</Text>
+                    <Text style={styles.commentsContainer}>{commentCount ?? 0}</Text>
                 </View>
             </View>
         </Pressable>

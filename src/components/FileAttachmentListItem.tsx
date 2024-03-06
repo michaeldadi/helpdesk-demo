@@ -5,6 +5,9 @@ import {convertBytesToMB, downloadAndShareFile} from "../utils/helpers";
 import ModalViewImage from "./ModalViewImage";
 import {useState} from "react";
 
+/**
+ * Renders a single file attachment list item
+ */
 const FileAttachmentListItem = ({ file, onRemoveFile }: { file: any, onRemoveFile?: (file: any) => void }) => {
     const [modalViewImageVisible, setModalViewImageVisible] = useState(false);
 

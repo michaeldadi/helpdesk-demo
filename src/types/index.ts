@@ -48,3 +48,13 @@ export type BottomSheetProps = {
     ticketStatus?: TicketStatus;
     onSuccess?: (val: any) => void;
 }
+
+export type FileMeta = {
+    file_name: string;
+    file_size: number;
+    mime_type: string;
+    uri: string;
+    id: number;
+    path: string;
+    file_url: string;
+}

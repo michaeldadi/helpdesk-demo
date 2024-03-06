@@ -6,7 +6,10 @@ import moment from "moment";
 import {Link} from "expo-router";
 import {convertStatusToDisplayString} from "../utils/helpers";
 
-const AdminTicketListItem = ({ticket} : {ticket: Ticket}) => {
+/**
+ * Renders a single ticket list item for the admin panel
+ */
+const AdminTicketListItem = ({ticket, commentCount}: {ticket: Ticket; commentCount: number}) => {
     return (
         <Link
             href={{
@@ -38,7 +41,7 @@ const AdminTicketListItem = ({ticket} : {ticket: Ticket}) => {
                     </View>
                     <View style={styles.row}>
                         <Ionicons name={'chatbubbles'} size={scale(20)} color={'#6cacf4'} />
-                        <Text style={styles.commentsContainer}>1</Text>
+                        <Text style={styles.commentsContainer}>{commentCount ?? 0}</Text>
                     </View>
                 </View>
             </Pressable>

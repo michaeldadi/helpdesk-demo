@@ -4,6 +4,7 @@ import { decode as atob } from 'base-64';
 import {TicketStatus} from "../types";
 import * as Sharing from 'expo-sharing';
 
+// Upload a file to storage
 export const uploadFile = async (fileUri: string): Promise<any> => {
     const fileName = fileUri.split('/').pop();
     const fileExtension = fileName!.split('.').pop();
@@ -28,6 +29,7 @@ export const uploadFile = async (fileUri: string): Promise<any> => {
     return {...data, publicUrl};
 };
 
+// Delete a file from storage
 export const deleteFile = async (fileKey: string) => {
     const { data, error } = await supabase.storage
         .from('ticket-attachments')
@@ -40,6 +42,7 @@ export const deleteFile = async (fileKey: string) => {
     return data;
 };
 
+// Get a public URL for a file
 const getPublicFileUrl = async (fileKey: string): Promise<string> => {
     const { data } = supabase
         .storage
@@ -53,6 +56,7 @@ export const convertBytesToMB = (bytes: number) => {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 };
 
+// Convert ticket status to a user-friendly display string
 export const convertStatusToDisplayString = (status: TicketStatus): string => {
     switch (status) {
         case TicketStatus.NEW:
@@ -66,6 +70,7 @@ export const convertStatusToDisplayString = (status: TicketStatus): string => {
     }
 };
 
+// Download a file from a URL and display share sheet to view file
 export const downloadAndShareFile = async (url: string) => {
     // Download the file from the URL
     const { uri: localUri } = await FileSystem.downloadAsync(url, FileSystem.documentDirectory + 'downloadedFile.pdf');

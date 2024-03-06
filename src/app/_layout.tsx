@@ -2,15 +2,13 @@ import React from 'react';
 import { Tabs } from 'expo-router/tabs';
 import {ActionSheetProvider} from "@expo/react-native-action-sheet";
 import Toast from "react-native-toast-message";
-import {HoldMenuProvider} from "react-native-hold-menu";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 
+// Root tab navigator layout
 const AppLayout = () => {
     return (
         <ActionSheetProvider>
             <GestureHandlerRootView style={{flex: 1}}>
-                {/* @ts-ignore */}
-                <HoldMenuProvider theme="light">
                     <>
                         <Tabs>
                             <Tabs.Screen
@@ -24,7 +22,6 @@ const AppLayout = () => {
                         </Tabs>
                         <Toast topOffset={60} />
                     </>
-                </HoldMenuProvider>
             </GestureHandlerRootView>
         </ActionSheetProvider>
     );

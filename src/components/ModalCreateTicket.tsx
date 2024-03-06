@@ -11,7 +11,7 @@ import Toast from "react-native-toast-message";
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import {uploadFile} from "../utils/helpers";
-import {FileAttachment} from "../types";
+import {FileMeta} from "../types";
 import FileAttachmentListItem from "./FileAttachmentListItem";
 import {supabase} from "../utils/supabase";
 import * as Haptics from 'expo-haptics';
@@ -28,6 +28,9 @@ type FormValues = {
     attachments?: any[];
 };
 
+/**
+ * Renders a modal for creating a new ticket
+ */
 const ModalCreateTicket: FC<ModalCreateTicketProps> = ({visible, setVisible}) => {
     const {...methods} = useForm<FormValues>();
     const {setFocus, reset} = methods;
@@ -62,7 +65,7 @@ const ModalCreateTicket: FC<ModalCreateTicketProps> = ({visible, setVisible}) =>
                 .from('attachments')
                 .insert({
                     ticket_id: ticketId,
-                    file_url: file.publicUrl,
+                    file_url: file.file_url,
                     file_name: file.file_name,
                     file_size: file.file_size,
                     mime_type: file.mime_type,
@@ -127,18 +130,19 @@ const ModalCreateTicket: FC<ModalCreateTicketProps> = ({visible, setVisible}) =>
             quality: 1,
         });
 
+        // If the user selected an image, upload it and show loading state
         if (!result.canceled) {
             setIsUploading(true);
             const uploadedFile = await uploadFile(result.assets[0].uri);
 
-            const newFileMeta: FileAttachment = {
+            const newFileMeta: FileMeta = {
                 file_name: uploadedFile.path.split('/').pop(),
                 file_size: result.assets[0].fileSize!,
                 mime_type: result.assets[0].mimeType!,
                 uri: result.assets[0].uri,
                 id: uploadedFile.id,
                 path: uploadedFile.path,
-                publicUrl: uploadedFile.publicUrl,
+                file_url: uploadedFile.publicUrl,
             }
 
             setFileAttachments([...fileAttachments, newFileMeta]);
@@ -156,18 +160,19 @@ const ModalCreateTicket: FC<ModalCreateTicketProps> = ({visible, setVisible}) =>
             quality: 1,
         });
 
+        // If the user selected an image, upload it and show loading state
         if (!result.canceled) {
             setIsUploading(true);
             const uploadedFile = await uploadFile(result.assets[0].uri);
 
-            const newFileMeta: FileAttachment = {
+            const newFileMeta: FileMeta = {
                 file_name: uploadedFile.path.split('/').pop(),
                 file_size: result.assets[0].fileSize!,
                 mime_type: result.assets[0].mimeType!,
                 uri: result.assets[0].uri,
                 id: uploadedFile.id,
                 path: uploadedFile.path,
-                publicUrl: uploadedFile.publicUrl,
+                file_url: uploadedFile.publicUrl,
             }
 
             setFileAttachments([...fileAttachments, newFileMeta]);
@@ -188,14 +193,14 @@ const ModalCreateTicket: FC<ModalCreateTicketProps> = ({visible, setVisible}) =>
             setIsUploading(true);
             const uploadedFile = await uploadFile(result.assets[0].uri);
 
-            const newFileMeta: FileAttachment = {
+            const newFileMeta: FileMeta = {
                 file_name: result.assets[0].name,
                 file_size: result.assets[0].size!,
                 mime_type: result.assets[0].mimeType!,
                 uri: result.assets[0].uri,
                 id: uploadedFile.id,
                 path: uploadedFile.path,
-                publicUrl: uploadedFile.publicUrl,
+                file_url: uploadedFile.publicUrl,
             };
 
             setFileAttachments([...fileAttachments, newFileMeta]);
@@ -237,7 +242,7 @@ const ModalCreateTicket: FC<ModalCreateTicketProps> = ({visible, setVisible}) =>
             }});
     };
 
-    const [fileAttachments, setFileAttachments] = useState<FileAttachment[]>([]);
+    const [fileAttachments, setFileAttachments] = useState<FileMeta[]>([]);
 
     const removeFileFromAttachments = (file: any) => {
         fileAttachments.splice(fileAttachments.indexOf(file), 1);
@@ -296,7 +301,7 @@ const ModalCreateTicket: FC<ModalCreateTicketProps> = ({visible, setVisible}) =>
                         <Button title={'Upload File(s)'} onPress={displayFileUploadOptions} type={'outline'} loading={isUploading} disabled={isUploading || loading} />
 
                         <View>
-                            {fileAttachments.map((file: FileAttachment) => (
+                            {fileAttachments.map((file: FileMeta) => (
                                 <FileAttachmentListItem file={file} key={file.id} onRemoveFile={removeFileFromAttachments} />
                             ))}
                         </View>

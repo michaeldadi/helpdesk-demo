@@ -1,7 +1,7 @@
-import React, {FC, useEffect, useState} from 'react';
+import React, {FC, useCallback, useState} from 'react';
 import {ScaledSheet, scale, moderateScale} from 'react-native-size-matters';
 import {FlatList, Text, View} from "react-native";
-import {useNavigation} from "expo-router";
+import {useFocusEffect} from "expo-router";
 import type {Ticket} from "../types";
 import {supabase} from "../utils/supabase";
 import CustomerTicketListItem from "../components/CustomerTicketListItem";
@@ -10,13 +10,10 @@ import {Button} from "react-native-elements";
 import ModalCreateTicket from "../components/ModalCreateTicket";
 
 const CustomerTicketsEntry: FC = () => {
-    const navigation = useNavigation();
-    const isFocused: boolean = navigation.isFocused();
-
     // Total number of active tickets
     const [activeTicketCount, setActiveTicketCount] = useState<number>(0);
     // Ticket list items
-    const [tickets, setTickets] = useState<Ticket[] | null>([]);
+    const [tickets, setTickets] = useState<(Ticket & { commentCount: number })[]>([]);
     // List fetching state
     const [isFetching, setIsFetching] = useState<boolean>(false);
     // List filter for ticket status
@@ -42,17 +39,24 @@ const CustomerTicketsEntry: FC = () => {
     };
 
     // Get all tickets with status of 'NEW' or 'IN_PROGRESS'
-    const getActiveTickets = async (): Promise<Ticket[] | null> => {
+    const getActiveTickets = async (): Promise<(Ticket & { commentCount: number })[] | null> => {
         try {
-            const {data, error} = await supabase
+            const { data, error } = await supabase
                 .from('tickets')
-                .select('*')
-                .in('status', ['NEW', 'IN_PROGRESS']);
+                .select('*, comments:comments(ticket_id)')
+                .in('status', ['NEW', 'IN_PROGRESS'])
+                .order('created_at', { ascending: false });
 
-            return data;
+            if (error) throw error;
+
+            // Map the tickets to include the count of comments
+            return data.map(ticket => ({
+                ...ticket,
+                commentCount: ticket.comments?.length || 0
+            }));
         } catch (err) {
             console.error('Error fetching active tickets:', err);
-            return [];
+            return null;
         }
     };
 
@@ -60,20 +64,17 @@ const CustomerTicketsEntry: FC = () => {
     const loadTickets = async (): Promise<void> => {
         setIsFetching(true);
 
-        getActiveTickets().then((data: Ticket[] | null) => {
-            setTickets(data);
-        });
+        const fetchedTickets = await getActiveTickets();
+        setTickets(fetchedTickets ?? []);
 
         setIsFetching(false);
     };
 
     // Fetch active tickets when screen is focused
-    useEffect(() => {
-        if (isFocused) {
-            getActiveTicketCount().then((count: number | null) => setActiveTicketCount(count ?? 0));
-            loadTickets();
-        }
-    }, [isFocused]);
+    useFocusEffect(useCallback(() => {
+        getActiveTicketCount().then((count: number | null) => setActiveTicketCount(count ?? 0));
+        loadTickets();
+    }, [filter]));
 
     return (
         <View style={styles.container}>
@@ -97,7 +98,7 @@ const CustomerTicketsEntry: FC = () => {
                 refreshing={isFetching}
                 onRefresh={loadTickets}
                 data={tickets}
-                renderItem={({item}: {item: Ticket}) => <CustomerTicketListItem ticket={item} />}
+                renderItem={({ item }: { item: Ticket & { commentCount: number } }) => <CustomerTicketListItem ticket={item} commentCount={item.commentCount} />}
             />
 
             <ModalCreateTicket visible={createTicketModalVisible} setVisible={setCreateTicketModalVisible} />

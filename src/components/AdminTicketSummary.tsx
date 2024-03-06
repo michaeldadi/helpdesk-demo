@@ -3,39 +3,15 @@ import { View, Text } from "react-native";
 import { scale, ScaledSheet } from "react-native-size-matters";
 import { supabase } from "../utils/supabase";
 
-const AdminTicketSummary: FC = () => {
-    const [ticketCounts, setTicketCounts] = useState({
-        new: 0,
-        inProgress: 0,
-        resolved: 0
-    });
-
-    const getTicketCounts = async (): Promise<void> => {
-        try {
-            const statuses = ['NEW', 'IN_PROGRESS', 'RESOLVED'];
-            const counts = await Promise.all(statuses.map(async (status) => {
-                const { count, error } = await supabase
-                    .from('tickets')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('status', status);
-                if (error) throw error;
-                return count;
-            }));
-
-            setTicketCounts({
-                new: counts[0] ?? 0,
-                inProgress: counts[1] ?? 0,
-                resolved: counts[2] ?? 0
-            });
-        } catch (err) {
-            console.error('Error fetching ticket counts:', err);
-        }
+type AdminTicketSummaryProps = {
+    ticketCounts: {
+        new: number;
+        inProgress: number;
+        resolved: number;
     };
+}
 
-    useEffect(() => {
-        getTicketCounts();
-    }, []);
-
+const AdminTicketSummary: FC<AdminTicketSummaryProps> = ({ticketCounts}) => {
     return (
         <View style={styles.container}>
             <View>

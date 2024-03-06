@@ -1,5 +1,6 @@
 import {Stack} from "expo-router";
 
+// Stack navigator layout for admin dashboard
 const AppLayout = () => {
     return (
         <Stack>

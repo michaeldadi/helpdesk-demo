@@ -8,6 +8,9 @@ type ModalViewImageProps = {
     imageUrl: string;
 };
 
+/**
+ * Modal view image component
+ */
 const ModalViewImage: FC<ModalViewImageProps> = ({visible, setVisible, imageUrl}) => {
     return (
         <Modal visible={visible} animationType={'fade'} onRequestClose={() => setVisible(false)} transparent>

@@ -1,5 +1,5 @@
 import {useController, UseControllerProps, useFormContext} from "react-hook-form";
-import {View, Text} from "react-native";
+import {View} from "react-native";
 import type {TextInputProps as RNTextInputProps} from "react-native";
 import {Input as RNTextInput} from "react-native-elements";
 import {moderateScale, scale, ScaledSheet} from "react-native-size-matters";
@@ -9,6 +9,9 @@ interface TextInputProps extends RNTextInputProps, UseControllerProps {
     defaultValue?: string;
 }
 
+/**
+ * Controlled input component for react-hook-form
+ */
 const ControlledInput = (props: TextInputProps) => {
     const {
         name,
@@ -48,6 +51,9 @@ const ControlledInput = (props: TextInputProps) => {
     );
 };
 
+/**
+ * TextInput component that integrates with react-hook-form
+ */
 export const TextInput = (props: TextInputProps) => {
     const { name } = props;
     const { control } = useFormContext(); // Get control from form context

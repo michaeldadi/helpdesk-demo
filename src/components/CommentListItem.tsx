@@ -9,6 +9,9 @@ type CommentListItemProps = {
     comment: Comment;
 }
 
+/**
+ * Renders a single comment list item
+ */
 const CommentListItem: FC<CommentListItemProps> = ({comment} : {comment: any}) => {
     return (
         <View style={styles.container}>

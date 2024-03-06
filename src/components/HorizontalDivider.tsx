@@ -2,6 +2,9 @@ import React, {FC} from "react";
 import {View} from "react-native";
 import {ScaledSheet} from "react-native-size-matters";
 
+/**
+ * Horizontal divider component
+ */
 const HorizontalDivider: FC = () => {
     return <View style={styles.divider} />
 };

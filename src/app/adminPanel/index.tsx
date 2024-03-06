@@ -1,19 +1,46 @@
-import React, {FC, useEffect, useState} from 'react';
+import React, {FC, useCallback, useState} from 'react';
 import {scale, ScaledSheet} from "react-native-size-matters";
 import {FlatList, Text, View} from "react-native";
-import {useNavigation} from "expo-router";
 import {Ticket, TicketStatus} from "../../types";
 import {supabase} from "../../utils/supabase";
 import AdminTicketSummary from "../../components/AdminTicketSummary";
 import {Chip} from "react-native-elements";
 import AdminTicketListItem from "../../components/AdminTicketListItem";
+import {useFocusEffect} from 'expo-router';
 
 const AdminPanel: FC = () => {
-    const navigation = useNavigation();
-    const isFocused: boolean = navigation.isFocused();
+    // Ticket counts for admin ticket summary component
+    const [ticketCounts, setTicketCounts] = useState({
+        new: 0,
+        inProgress: 0,
+        resolved: 0
+    });
+
+    // Fetch ticket counts from the database
+    const getTicketCounts = async (): Promise<void> => {
+        try {
+            const statuses = ['NEW', 'IN_PROGRESS', 'RESOLVED'];
+            const counts = await Promise.all(statuses.map(async (status) => {
+                const { count, error } = await supabase
+                    .from('tickets')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', status);
+                if (error) throw error;
+                return count;
+            }));
+
+            setTicketCounts({
+                new: counts[0] ?? 0,
+                inProgress: counts[1] ?? 0,
+                resolved: counts[2] ?? 0
+            });
+        } catch (err) {
+            console.error('Error fetching ticket counts:', err);
+        }
+    };
 
     // Ticket list items
-    const [tickets, setTickets] = useState<Ticket[]>([]);
+    const [tickets, setTickets] = useState<(Ticket & { commentCount: number })[]>([]);
     // List filter for ticket status
     const [filter, setFilter] = useState<null | 'NEW' | 'IN_PROGRESS' | 'RESOLVED'>(null);
 
@@ -31,43 +58,50 @@ const AdminPanel: FC = () => {
         try {
             let query = supabase
                 .from('tickets')
-                .select('*')
+                .select('*, comments:comments(ticket_id)')
                 .order('created_at', { ascending: false });
 
             if (filter) {
-                query = query.in('status', [filter]);
+                query = query.eq('status', filter);
             }
 
-            const {data, error} = await query;
+            const { data, error } = await query;
 
             if (error) throw error;
 
-            return data;
+            // Map the tickets to include the count of comments
+            return data.map(ticket => ({
+                ...ticket,
+                commentCount: ticket.comments?.length || 0
+            }));
         } catch (err) {
             console.error('Error fetching tickets:', err);
         }
     };
 
+    // Load fetched tickets into state
     const loadTickets = async (): Promise<void> => {
         setIsFetching(true);
 
-        fetchTickets().then((data?: Ticket[] | null) => {
-            setTickets(data ?? []);
-        });
+        const fetchedTickets = await fetchTickets();
+        setTickets(fetchedTickets ?? []);
 
         setIsFetching(false);
     };
 
+    // Fetch ticket counts and tickets
+    const loadTicketsAndCount = async (): Promise<void> => {
+        await Promise.all([getTicketCounts(), loadTickets()]);
+    };
+
     // Fetch tickets when the screen is focused or the filter changes
-    useEffect(() => {
-        if (isFocused) {
-            loadTickets();
-        }
-    }, [isFocused, filter]);
+    useFocusEffect(useCallback(() => {
+        loadTicketsAndCount();
+    }, [filter]));
 
     return (
         <View style={styles.container}>
-            <AdminTicketSummary />
+            <AdminTicketSummary ticketCounts={ticketCounts} />
 
             <View>
                 <Text>Tickets</Text>
@@ -85,11 +119,13 @@ const AdminPanel: FC = () => {
 
             <View>
                 <FlatList
-                    style={{height: '79.5%'}}
+                    style={{ height: '79.5%' }}
                     refreshing={isFetching}
-                    onRefresh={loadTickets}
+                    onRefresh={loadTicketsAndCount}
                     data={tickets}
-                    renderItem={({item}: {item: Ticket}) => <AdminTicketListItem ticket={item} />}
+                    renderItem={({ item }: { item: Ticket & { commentCount: number } }) => (
+                        <AdminTicketListItem ticket={item} commentCount={item.commentCount} />
+                    )}
                 />
             </View>
         </View>
