@@ -70,10 +70,16 @@ const CustomerTicketsEntry: FC = () => {
         setIsFetching(false);
     };
 
+    const getTicketsAndCount = async (): Promise<void> => {
+        await Promise.all([
+            getActiveTicketCount().then((count: number | null) => setActiveTicketCount(count ?? 0)),
+            loadTickets()
+        ]);
+    }
+
     // Fetch active tickets when screen is focused
     useFocusEffect(useCallback(() => {
-        getActiveTicketCount().then((count: number | null) => setActiveTicketCount(count ?? 0));
-        loadTickets();
+        getTicketsAndCount();
     }, [filter]));
 
     return (
@@ -96,7 +102,7 @@ const CustomerTicketsEntry: FC = () => {
             <FlatList
                 style={{height: '75%'}}
                 refreshing={isFetching}
-                onRefresh={loadTickets}
+                onRefresh={getTicketsAndCount}
                 data={tickets}
                 renderItem={({ item }: { item: Ticket & { commentCount: number } }) => <CustomerTicketListItem ticket={item} commentCount={item.commentCount} />}
             />
