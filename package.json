@@ -42,7 +42,9 @@
     "react-native-toast-message": "^2.2.0",
     "react-native-unimodules": "^0.14.10",
     "react-native-url-polyfill": "^2.0.0",
-    "react-native-webview": "13.6.4"
+    "react-native-webview": "13.6.4",
+    "@expo/ngrok": "^4.1.0",
+    "expo-updates": "~0.24.11"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
